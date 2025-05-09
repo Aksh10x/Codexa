@@ -1,0 +1,17 @@
+{
+    "manifest_version": 3,
+    "name": "Codexa",
+    "version": "1.0.0",
+    "action": {
+        "default_popup": "index.html"
+    },
+    "permissions": [
+        "storage",
+        "scripting",
+        "activeTab"
+    ],
+    "host_permissions": ["<all_urls>"],
+    "description": "Explain code snippets using AI on any webpage."
+
+
+}
