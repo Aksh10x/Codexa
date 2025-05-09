@@ -8,7 +8,8 @@
     "permissions": [
         "storage",
         "scripting",
-        "activeTab"
+        "activeTab",
+        "tabs"
     ],
     "host_permissions": ["<all_urls>"],
     "description": "Explain code snippets using AI on any webpage."
