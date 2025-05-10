@@ -637,7 +637,7 @@ function App() {
                   
                   <div className="mt-6 flex flex-col items-center justify-center gap-2">
                     <motion.p 
-                      initial={{filter: "blur(1px)", opacity:0.5}}
+                      initial={{filter: "blur(3px)", opacity:0.5}}
                       animate={{filter: "blur(0px)", opacity:1}}
                       transition={{
                         duration: 0.3,
