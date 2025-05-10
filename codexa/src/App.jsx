@@ -609,7 +609,7 @@ function App() {
                         <span className="text-red-400">function</span> <span className="text-yellow-300">decodeSnippet</span><span className="text-white">(</span><span className="text-red-300">code</span><span className="text-white">) {`{`}</span>
                       </motion.p>
                       <motion.p 
-                        initial={{filter: "blur(1px)", opacity:0.5}}
+                        initial={{filter: "blur(3px)", opacity:0.5}}
                         animate={{filter: "blur(0px)", opacity:1}}
                         transition={{
                           duration: 0.6,
