@@ -609,7 +609,7 @@ function App() {
                         <span className="text-red-400">function</span> <span className="text-yellow-300">decodeSnippet</span><span className="text-white">(</span><span className="text-red-300">code</span><span className="text-white">) {`{`}</span>
                       </motion.p>
                       <motion.p 
-                        initial={{filter: "blur(3px)", opacity:0.5}}
+                        initial={{filter: "blur(1px)", opacity:0.5}}
                         animate={{filter: "blur(0px)", opacity:1}}
                         transition={{
                           duration: 0.6,
@@ -621,7 +621,7 @@ function App() {
                         <span className="text-yellow-500">return</span> <span className="text-red-300">"Simplified explanation"</span>;
                       </motion.p>
                       <motion.p 
-                        initial={{filter: "blur(3px)", opacity:0.5}}
+                        initial={{filter: "blur(1px)", opacity:0.5}}
                         animate={{filter: "blur(0px)", opacity:1}}
                         transition={{
                           duration: 0.6,
@@ -637,10 +637,10 @@ function App() {
                   
                   <div className="mt-6 flex flex-col items-center justify-center gap-2">
                     <motion.p 
-                      initial={{filter: "blur(3px)", opacity:0.5}}
+                      initial={{filter: "blur(1px)", opacity:0.5}}
                       animate={{filter: "blur(0px)", opacity:1}}
                       transition={{
-                        duration: 0.6,
+                        duration: 0.3,
                         ease: "easeInOut",
                         delay: 0.6
                       }}
@@ -670,9 +670,9 @@ function App() {
                           stiffness: 500,
                           damping: 20,
                           filter: {
-                            duration: 0.6,
+                            duration: 0.3,
                             ease: "easeInOut",
-                            delay: 0.7
+                            delay: 0.6
                           },
                           opacity: {
                             duration: 0.6,
@@ -704,9 +704,9 @@ function App() {
                           stiffness: 500,
                           damping: 20,
                           filter: {
-                            duration: 0.6,
+                            duration: 0.3,
                             ease: "easeInOut",
-                            delay: 0.8
+                            delay: 0.6
                           },
                           opacity: {
                             duration: 0.6,
