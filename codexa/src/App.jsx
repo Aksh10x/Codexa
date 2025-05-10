@@ -1,6 +1,9 @@
 import { useEffect, useState, useRef } from 'react'
 import { motion } from 'motion/react'
 import fetchGeminiResponse from './howItWorks';
+import { FaChevronDown, FaChevronUp, FaCircleArrowUp } from 'react-icons/fa6';
+import fetchFollowUpResponse from './followUpQuestions';
+import { GiNorthStarShuriken } from 'react-icons/gi';
 
 function App() {
   const [isSelected, setIsSelected] = useState(false);
@@ -10,6 +13,11 @@ function App() {
   const typingRef = useRef(null);
   const [geminiResponse, setGeminiResponse] = useState("");
   const [geminiError, setGeminiError] = useState("");
+  const [followUp, setFollowUp] = useState("");
+  const [isfollowUp, setIsFollowUp] = useState(false);
+  const [conversation, setConversation] = useState([
+  ]);
+  const [isLoadingResponse, setIsLoadingResponse] = useState(false);
 
   const getSelectedText = async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -71,24 +79,71 @@ function App() {
   useEffect(() => {
     if(!isSelected) return;
     const fetchResponse = async () => {
-      console.log(selectedText)
-      const response = await fetchGeminiResponse(selectedText);
-      console.log("Gemini API Response:", response);
-      if (response.error) {
-        setGeminiError(response.error.message);
-        return;
-      }
-      else{
+    setIsLoadingResponse(true);
+    console.log(selectedText);
+    const response = await fetchGeminiResponse("Explain what the following code does in simple terms.\nMake sure to:\n- Break it down step by step\n- Use bullet points where needed\n- Format code snippets using backticks\n- Keep it concise but thorough\n Do not explain extremely obvious things and try to keep it short and sweet \n I need to display this on my web app so for bold headings use two bullet points (**)\n\nHere is the code(if this is not code then return a blank statement):\n"+selectedText);
+    console.log("Gemini API Response:", response);
+    setIsLoadingResponse(false);
+    
+    if (response.error) {
+      setGeminiError(response.error.message);
+      return;
+    }
+      else {
+        setConversation([
+          ...conversation,
+          {
+            role: "user",
+            parts: [{ text: selectedText }],
+          },
+          { 
+            role: "model", 
+            parts: [{ text: response.candidates[0].content.parts[0].text }] 
+          }
+        ]);
+        
         setTimeout(() => {
           setGeminiResponse(response.candidates[0].content.parts[0].text);
-        },800);
+        }, 800);
       }
     };
     fetchResponse();
   },[selectedText])
 
+  const askFollowUp = async () => {
+    if (!followUp.trim()) return;
+    
+    setIsLoadingResponse(true);
+    const updatedConversation = [
+      ...conversation,
+      {
+        role: "user",
+        parts: [{ text: followUp }],
+      }
+    ];
+
+    setConversation(updatedConversation);
+
+    const response = await fetchFollowUpResponse(updatedConversation);
+    setIsLoadingResponse(false);
+    
+    if (response.error) {
+      setGeminiError(response.error.message);
+      return;
+    }
+    else {
+      setConversation([
+        ...updatedConversation,
+        { 
+          role: "model", 
+          parts: [{ text: response.candidates[0].content.parts[0].text }] 
+        }
+      ]);
+    }
+  }
+
   return (
-    <div className='flex w-screen h-screen bg-black items-center justify-center'>
+    <div className='flex w-screen h-screen bg-black items-center justify-center relative'>
       <div className='max-w-[350px] max-h-[450px] h-full w-full bg-white/5 flex flex-col p-4'>
         <div className='flex flex-col items-center w-full justify-center p-2'>
           <motion.h1
@@ -117,17 +172,48 @@ function App() {
                 geminiResponse ? 
                 
                   (
+                  <div className='flex flex-col items-center justify-center w-full h-full gap-3'>
+                  {
+                    !isfollowUp ? (
                   <motion.div 
-                    className='w-full h-full p-4 max-h-[250px] bg-black/40 border border-yellow-500/30 rounded-lg overflow-auto'
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    className='w-full h-full p-4 max-h-[250px] relative bg-black/40 border border-yellow-500/30 rounded-lg overflow-auto'
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1 , height: "auto"}}
                     transition={{ duration: 0.5 }}
+                    exit={{ opacity: 0, height: 0 }}
+                    
                   >
+                    <motion.button 
+                      className={`absolute top-2 right-2 text-xl text-yellow-300 cursor-pointer`}
+                      whileHover={{
+                        scale:  1.05,
+                        transition: { duration: 0.2 }
+                      }}
+                      whileTap={{
+                        scale: 0.95,
+                        y: -3,
+                        transition: { duration: 0.2, ease: "easeInOut" }
+                      }}
+                      onClick={() => {
+                        setIsFollowUp(true);
+                      }}
+                    >
+                      <FaChevronUp/>
+                    </motion.button>
                     <div className='text-yellow-300 whitespace-pre-line'>
                       {geminiResponse.split('\n').map((line, index) => {
                         // Handle bold headings marked with ** (both at start of line and inline)
-                        if (line.startsWith('**') && line.substring(2).trim().includes('**')) {
+                        if (line.startsWith('**') && line.endsWith('**')) {
                           // This detects section headers like "**Purpose**"
+                          const headerText = line.substring(2, line.length - 2);
+                          return (
+                            <div key={index} className='mb-3 mt-2'>
+                              <h2 className='font-bold text-lg'>{headerText}</h2>
+                            </div>
+                          );
+                        }
+                        else if (line.startsWith('**') && line.substring(2).trim().includes('**')) {
+                          // This detects inline bold text
                           const headerText = line.substring(2, line.lastIndexOf('**'));
                           return (
                             <div key={index} className='mb-3 mt-2'>
@@ -155,12 +241,16 @@ function App() {
                         }
                         // Handle code snippets in backticks
                         else if (line.includes('`')) {
+                          // Split the line by backticks
                           const segments = line.split('`');
+                          
                           return (
                             <div key={index} className='mb-2'>
                               {segments.map((segment, segIdx) => (
                                 segIdx % 2 === 0 ? 
+                                  // Regular text
                                   <span key={segIdx}>{segment}</span> : 
+                                  // Code snippet (odd indices contain code)
                                   <code key={segIdx} className='bg-black/50 px-1 py-0.5 rounded font-mono text-green-300'>{segment}</code>
                               ))}
                             </div>
@@ -173,6 +263,177 @@ function App() {
                       })}
                     </div>
                   </motion.div>
+                    )
+                    :
+                    (
+                      
+                      <motion.div
+                      className='w-[95%] h-full p-2 absolute top-20 flex justify-between items-center bg-yellow-300/10 rounded-lg overflow-auto'
+                      initial={{ opacity: 0, y: -10  }}
+                      animate={{ opacity: 1 , y: 0}}
+                      transition={{ duration: 0.5 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      >
+                        <p className='text-yellow-300 text-sm'>See the first response</p>
+                        <motion.button onClick={() => setIsFollowUp(false)}
+                          whileHover={{
+                            scale: 1.05,
+                            transition: { duration: 0.2 }
+                          }}
+                          whileTap={{
+                            scale: 0.95,
+                            y: -3,
+                            transition: { duration: 0.2, ease: "easeInOut" }
+                          }}
+                          
+                          className="text-yellow-300 text-xl"
+                          >
+                          <FaChevronDown />
+                        </motion.button>
+                      </motion.div>
+                      
+                    )
+                  }
+
+                  {
+                    isfollowUp && (
+                  <motion.div
+                    className='w-full h-full max-h-[230px] relative rounded-lg overflow-auto'
+                    initial={{ opacity: 0, y: -100 }}
+                    animate={{ opacity: 1 , y: 0}}
+                    transition={{ duration: 0.5 }}
+                    exit={{ opacity: 0, y: -100 }}
+                  >
+                    {
+                      conversation.map((message, index) => {
+                        
+                        if (index === 0 || index === 1) return null;
+                        
+                        if (message.role === "user") {
+                          return (
+                            <motion.div 
+                              key={index} 
+                              className='mb-3 ml-auto max-w-[85%] rounded-lg overflow-hidden'
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.3 }}
+                            >
+                              <div className='p-2.5 bg-yellow-500/20 border border-yellow-500/40 rounded-lg text-yellow-100 text-xs'>
+                                {message.parts[0].text}
+                              </div>
+                            </motion.div>
+                          );
+                        }else if (message.role === "model") {
+                          return (
+                            <motion.div 
+                              key={index} 
+                              className='mb-3 mr-auto max-w-[85%] rounded-lg overflow-hidden'
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.3, delay: 0.1 }}
+                            >
+                              <div className='p-2.5 bg-white/10 border border-white/20 rounded-lg text-white text-xs'>
+                                {message.parts[0].text.split('\n').map((line, lineIdx) => {
+                                 
+                                  if (line.startsWith('**') && line.endsWith('**')) {
+                                    const headerText = line.substring(2, line.length - 2);
+                                    return (
+                                      <div key={lineIdx} className='mb-2 mt-1'>
+                                        <span className='font-bold text-yellow-200'>{headerText}</span>
+                                      </div>
+                                    );
+                                  }
+                                  else if (line.startsWith('**') && line.substring(2).trim().includes('**')) {
+                                    const headerText = line.substring(2, line.lastIndexOf('**'));
+                                    return (
+                                      <div key={lineIdx} className='mb-2 mt-1'>
+                                        <span className='font-bold text-yellow-200'>{headerText}</span>
+                                      </div>
+                                    );
+                                  }
+                                  
+                                  else if (line.startsWith('** ')) {
+                                    return (
+                                      <div key={lineIdx} className='mb-2 mt-1'>
+                                        <span className='font-bold text-yellow-200'>{line.substring(3)}</span>
+                                      </div>
+                                    );
+                                  }
+                                 
+                                  else if (line.startsWith('• ') || line.startsWith('* ') || line.startsWith('- ')) {
+                                    const bulletText = line.substring(2);
+                                    return (
+                                      <div key={lineIdx} className='mb-1.5 flex'>
+                                        <span className='mr-1.5 text-yellow-300'>•</span>
+                                        <span>{bulletText}</span>
+                                      </div>
+                                    );
+                                  }
+                                 
+                                  else if (line.includes('`')) {
+                                    const segments = line.split('`');
+                                    return (
+                                      <div key={lineIdx} className='mb-1.5'>
+                                        {segments.map((segment, segIdx) => (
+                                          segIdx % 2 === 0 ? 
+                                            <span key={segIdx}>{segment}</span> : 
+                                            <code key={segIdx} className='bg-black/50 px-1 py-0.5 rounded font-mono text-green-300'>{segment}</code>
+                                        ))}
+                                      </div>
+                                    );
+                                  }
+                                
+                                  else {
+                                    return <div key={lineIdx} className='mb-1.5'>{line}</div>;
+                                  }
+                                })}
+                                </div>
+                            </motion.div>
+                          );
+                        }
+                        return null;
+                      })
+                    }
+                  </motion.div>
+                    )
+                  }
+                  
+                  <div className="absolute w-full bottom-0 p-2">
+                    <input
+                      type="text"
+                      value={followUp}
+                      placeholder="Ask your follow up question here..."
+                      onChange={(e) => setFollowUp(e.target.value)}
+                      className={`w-full px-3 py-2 rounded-md ${followUp ? "text-white" : "text-white/20"} bg-black border focus:outline-none focus:border-amber-200 border-yellow-400 pr-10`}
+                    />
+                    <motion.button
+                    whileHover={{
+                      scale: 1.05,
+                      rotate: 90,
+                      transition: { duration: 0.2 }
+                    }}
+                    whileTap={{
+                      scale: 0.95,
+                      x: 3,
+                      transition: { duration: 0.2, ease: "easeInOut" }
+                    }}
+                    onClick={() => {
+                      setIsFollowUp(true);
+                      setFollowUp("");
+                      askFollowUp();
+                    }} 
+                    disabled={isLoadingResponse || !followUp.trim()}
+                    className={` text-2xl absolute right-3 top-1/2 transform -translate-y-1/2 ${isLoadingResponse ? 'cursor-not-allowed text-amber-500/50' : 'cursor-pointer text-yellow-300'}`}>
+                      {isLoadingResponse ? (
+                        <GiNorthStarShuriken className='animate-spin' />
+                      ) : (
+                        <FaCircleArrowUp />
+                      )}
+                    </motion.button>
+                  </div>
+                  
+                  
+                  </div>
                 )
                 
                 :

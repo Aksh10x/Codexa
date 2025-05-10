@@ -1,7 +1,6 @@
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
-async function fetchGeminiResponse(prompt) {
-    console.log(prompt)
+async function fetchFollowUpResponse(conversation) {
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
     {
@@ -10,15 +9,7 @@ async function fetchGeminiResponse(prompt) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
+        contents: conversation
       }),
     }
   );
@@ -28,4 +19,4 @@ async function fetchGeminiResponse(prompt) {
   return data;
 }
 
-export default fetchGeminiResponse;
+export default fetchFollowUpResponse;
