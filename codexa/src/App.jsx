@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { motion } from 'motion/react'
 import fetchGeminiResponse from './howItWorks';
-import { FaChevronDown, FaChevronUp, FaCircleArrowUp } from 'react-icons/fa6';
+import { FaChevronDown, FaChevronUp, FaCircleArrowUp, FaKeyboard, FaArrowRight } from 'react-icons/fa6';
 import fetchFollowUpResponse from './followUpQuestions';
 import { GiNorthStarShuriken } from 'react-icons/gi';
 
@@ -15,10 +15,11 @@ function App() {
   const [geminiError, setGeminiError] = useState("");
   const [followUp, setFollowUp] = useState("");
   const [isfollowUp, setIsFollowUp] = useState(false);
-  const [conversation, setConversation] = useState([
-  ]);
+  const [conversation, setConversation] = useState([]);
   const [isLoadingResponse, setIsLoadingResponse] = useState(false);
   const scrollRef = useRef(null);
+  const [isManualInput, setIsManualInput] = useState(false);
+  const [manualInputText, setManualInputText] = useState("");
 
   const scrollToBottom = () => {
     if(scrollRef.current) {
@@ -39,20 +40,16 @@ function App() {
     const text = results[0]?.result || "No text selected";
     setSelectedText(text);
     
-    
     setIsTyping(true);
     startTypingAnimation(text);
   };
 
   const startTypingAnimation = (text) => {
-    
     const truncatedText = text.length > 50 ? text.substring(0, 50) + "..." : text;
     let index = 0;
     setDisplayedText("");
     
-    
     if (typingRef.current) clearInterval(typingRef.current);
-    
     
     typingRef.current = setInterval(() => {
       if (index < truncatedText.length) {
@@ -66,14 +63,22 @@ function App() {
   };
 
   const handleButtonClick = () => {
-    
     setTimeout(() => {
       setIsSelected(true);
     }, 400); 
   };
 
+  const handleManualInputSubmit = () => {
+    if (manualInputText.trim()) {
+      setSelectedText(manualInputText);
+      setIsSelected(true);
+      setIsTyping(true);
+      startTypingAnimation(manualInputText);
+    }
+  };
+
   useEffect(() => {
-    if(!isSelected) return;
+    if(!isSelected || isManualInput) return;
     getSelectedText();
   },[isSelected]);
 
@@ -512,120 +517,210 @@ function App() {
             </div>
           ) : (
             <>
-            <motion.div 
-          className='flex flex-col p-4 h-[200px] w-full bg-black border border-yellow-300/50 rounded-lg overflow-hidden relative'
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-            >
-            
-            <div 
-              className="absolute inset-0 z-10 opacity-10 pointer-events-none"
-              style={{
-                backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
-                backgroundSize: 'cover'
-              }}
-            ></div>
-            
-           
-            <div className="absolute left-0 top-0 h-full w-8 bg-black/70 flex flex-col items-end pr-2 text-yellow-500/50 pt-4 z-20">
-              <div>1</div>
-              <div>2</div>
-              <div>3</div>
-            </div>
-            
-            
-            <div className="absolute top-0 left-0 w-full h-7 bg-black/80 flex items-center px-10 border-b border-yellow-700/30 z-20">
-              <div className="bg-black px-3 py-1 text-xs text-yellow-300/80 border-t border-red-500/70">snippet.js</div>
-            </div>
-            
-            <div className="pl-10 pt-8 z-20 relative">
-              <motion.p 
-                initial={{filter: "blur(3px)", opacity:0.5}}
-                animate={{filter: "blur(0px)", opacity:1}}
-                transition={{
-                  duration: 0.6,
-                  ease: "easeInOut",
-                }}
-                className="text-xl font-mono text-white"
-              >
-                <span className="text-red-400">function</span> <span className="text-yellow-300">decodeSnippet</span><span className="text-white">(</span><span className="text-red-300">code</span><span className="text-white">) {`{`}</span>
-              </motion.p>
-              <motion.p 
-                initial={{filter: "blur(3px)", opacity:0.5}}
-                animate={{filter: "blur(0px)", opacity:1}}
-                transition={{
-                  duration: 0.6,
-                  ease: "easeInOut",
-                  delay: 0.2
-                }}
-                className="text-xl font-mono text-white pl-6"
-              >
-                <span className="text-yellow-500">return</span> <span className="text-red-300">"Simplified explanation"</span>;
-              </motion.p>
-              <motion.p 
-                initial={{filter: "blur(3px)", opacity:0.5}}
-                animate={{filter: "blur(0px)", opacity:1}}
-                transition={{
-                  duration: 0.6,
-                  ease: "easeInOut",
-                  delay: 0.4
-                }}
-                className="text-xl font-mono text-white"
-              >
-                <span className="text-white">{`}`}</span>
-              </motion.p>
-            </div>
-          </motion.div>
-          
-        
-          <div className="mt-12 flex flex-col items-center justify-center gap-2">
-            <motion.p 
-              initial={{filter: "blur(3px)", opacity:0.5}}
-              animate={{filter: "blur(0px)", opacity:1}}
-              transition={{
-                duration: 0.6,
-                ease: "easeInOut",
-                delay: 0.6
-              }}
-              className="text-white text-center mb-2 font-semibold"
-            >
-              Have you selected your snippet?
-            </motion.p>
-            <motion.button
-              onClick={handleButtonClick}
-              className={`px-4 py-1.5 text-sm rounded-md font-semibold bg-gradient-to-r 
-                from-yellow-400 to-red-400 text-white
-               border-2 border-red-500`}
-              initial={{filter: "blur(3px)", opacity:0.5}}
-              animate={{filter: "blur(0px)", opacity:1}}
-              whileHover={{ 
-                scale: 1.05,
-                y: -2
-              }}
-              whileTap={{ 
-                scale: 0.95,
-                rotate: -1 
-              }}
-              transition={{
-                type: "spring",
-                stiffness: 500,
-                damping: 20,
-                filter: {
-                  duration: 0.6,
-                  ease: "easeInOut",
-                  delay: 0.7
-                },
-                opacity: {
-                  duration: 0.6,
-                  ease: "easeInOut",
-                  delay: 0.7
-                }
-              }}
-            >
-              Yes, I have!
-            </motion.button>
-          </div>
+              {isManualInput ? (
+                <motion.div 
+                  className='flex flex-col p-4 w-full h-full bg-black border border-yellow-300/50 rounded-lg overflow-hidden relative'
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                >
+                  <motion.h2 
+                    className='text-yellow-300 text-lg font-bold mb-3 text-center'
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    Paste your code snippet
+                  </motion.h2>
+                  
+                  <textarea 
+                    value={manualInputText}
+                    onChange={(e) => setManualInputText(e.target.value)}
+                    placeholder="Paste your code here..."
+                    className='w-full h-[180px] p-3 bg-black/40 border border-yellow-500/30 rounded-lg text-yellow-100 font-mono text-sm resize-none focus:outline-none focus:border-yellow-400'
+                  />
+                  
+                  <div className='mt-3 flex justify-between gap-2'>
+                    <motion.button
+                      onClick={() => setIsManualInput(false)}
+                      className='px-3 py-1.5 text-sm rounded-md font-semibold bg-black border border-yellow-400/50 text-yellow-300'
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      Back
+                    </motion.button>
+                    
+                    <motion.button
+                      onClick={handleManualInputSubmit}
+                      disabled={!manualInputText.trim()}
+                      className={`px-4 py-1.5 text-sm rounded-md font-semibold flex items-center gap-1
+                        ${manualInputText.trim() 
+                          ? 'bg-gradient-to-r from-yellow-400 to-red-400 text-white border-2 border-red-500' 
+                          : 'bg-gray-700/50 text-gray-400 border-2 border-gray-600 cursor-not-allowed'}`}
+                      whileHover={{ 
+                        scale: manualInputText.trim() ? 1.05 : 1,
+                        y: manualInputText.trim() ? -2 : 0
+                      }}
+                      whileTap={{ 
+                        scale: manualInputText.trim() ? 0.95 : 1,
+                        rotate: manualInputText.trim() ? -1 : 0
+                      }}
+                    >
+                      Analyze <FaArrowRight className="ml-1" />
+                    </motion.button>
+                  </div>
+                </motion.div>
+              ) : (
+                <>
+                  <motion.div 
+                    className='flex flex-col p-4 h-[200px] w-full bg-black border border-yellow-300/50 rounded-lg overflow-hidden relative'
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  >
+                    <div 
+                      className="absolute inset-0 z-10 opacity-10 pointer-events-none"
+                      style={{
+                        backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
+                        backgroundSize: 'cover'
+                      }}
+                    ></div>
+                    
+                    <div className="absolute left-0 top-0 h-full w-8 bg-black/70 flex flex-col items-end pr-2 text-yellow-500/50 pt-4 z-20">
+                      <div>1</div>
+                      <div>2</div>
+                      <div>3</div>
+                    </div>
+                    
+                    <div className="absolute top-0 left-0 w-full h-7 bg-black/80 flex items-center px-10 border-b border-yellow-700/30 z-20">
+                      <div className="bg-black px-3 py-1 text-xs text-yellow-300/80 border-t border-red-500/70">snippet.js</div>
+                    </div>
+                    
+                    <div className="pl-10 pt-8 z-20 relative">
+                      <motion.p 
+                        initial={{filter: "blur(3px)", opacity:0.5}}
+                        animate={{filter: "blur(0px)", opacity:1}}
+                        transition={{
+                          duration: 0.6,
+                          ease: "easeInOut",
+                        }}
+                        className="text-xl font-mono text-white"
+                      >
+                        <span className="text-red-400">function</span> <span className="text-yellow-300">decodeSnippet</span><span className="text-white">(</span><span className="text-red-300">code</span><span className="text-white">) {`{`}</span>
+                      </motion.p>
+                      <motion.p 
+                        initial={{filter: "blur(3px)", opacity:0.5}}
+                        animate={{filter: "blur(0px)", opacity:1}}
+                        transition={{
+                          duration: 0.6,
+                          ease: "easeInOut",
+                          delay: 0.2
+                        }}
+                        className="text-xl font-mono text-white pl-6"
+                      >
+                        <span className="text-yellow-500">return</span> <span className="text-red-300">"Simplified explanation"</span>;
+                      </motion.p>
+                      <motion.p 
+                        initial={{filter: "blur(3px)", opacity:0.5}}
+                        animate={{filter: "blur(0px)", opacity:1}}
+                        transition={{
+                          duration: 0.6,
+                          ease: "easeInOut",
+                          delay: 0.4
+                        }}
+                        className="text-xl font-mono text-white"
+                      >
+                        <span className="text-white">{`}`}</span>
+                      </motion.p>
+                    </div>
+                  </motion.div>
+                  
+                  <div className="mt-6 flex flex-col items-center justify-center gap-2">
+                    <motion.p 
+                      initial={{filter: "blur(3px)", opacity:0.5}}
+                      animate={{filter: "blur(0px)", opacity:1}}
+                      transition={{
+                        duration: 0.6,
+                        ease: "easeInOut",
+                        delay: 0.6
+                      }}
+                      className="text-white text-center mb-2 font-semibold"
+                    >
+                      How would you like to proceed?
+                    </motion.p>
+                    
+                    <div className="flex flex-col gap-3">
+                      <motion.button
+                        onClick={handleButtonClick}
+                        className={`px-4 py-1.5 justify-center text-sm rounded-md font-semibold bg-gradient-to-r 
+                          from-yellow-400 to-red-400 text-white
+                          border-2 border-red-500 flex items-center gap-1`}
+                        initial={{filter: "blur(3px)", opacity:0.5}}
+                        animate={{filter: "blur(0px)", opacity:1}}
+                        whileHover={{ 
+                          scale: 1.05,
+                          y: -2
+                        }}
+                        whileTap={{ 
+                          scale: 0.95,
+                          rotate: -1 
+                        }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 500,
+                          damping: 20,
+                          filter: {
+                            duration: 0.6,
+                            ease: "easeInOut",
+                            delay: 0.7
+                          },
+                          opacity: {
+                            duration: 0.6,
+                            ease: "easeInOut",
+                            delay: 0.7
+                          }
+                        }}
+                      >
+                        Use Selection
+                      </motion.button>
+                      
+                      <motion.button
+                        onClick={() => setIsManualInput(true)}
+                        className={`px-4 py-1.5 justify-center text-sm rounded-md font-semibold
+                          bg-white/5 border-1 border-yellow-400 text-yellow-300
+                          flex items-center gap-1`}
+                        initial={{filter: "blur(3px)", opacity:0.5}}
+                        animate={{filter: "blur(0px)", opacity:1}}
+                        whileHover={{ 
+                          scale: 1.05,
+                          y: -2
+                        }}
+                        whileTap={{ 
+                          scale: 0.95,
+                          rotate: 1 
+                        }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 500,
+                          damping: 20,
+                          filter: {
+                            duration: 0.6,
+                            ease: "easeInOut",
+                            delay: 0.8
+                          },
+                          opacity: {
+                            duration: 0.6,
+                            ease: "easeInOut",
+                            delay: 0.8
+                          }
+                        }}
+                      >
+                        <FaKeyboard className="mr-1" /> Manual Input (Preferred for LeetCode like interfaces)
+                      </motion.button>
+                    </div>
+                  </div>
+                </>
+              )}
             </>
           )
         }
