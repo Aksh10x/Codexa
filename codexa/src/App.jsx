@@ -18,6 +18,13 @@ function App() {
   const [conversation, setConversation] = useState([
   ]);
   const [isLoadingResponse, setIsLoadingResponse] = useState(false);
+  const scrollRef = useRef(null);
+
+  const scrollToBottom = () => {
+    if(scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }
 
   const getSelectedText = async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -81,7 +88,7 @@ function App() {
     const fetchResponse = async () => {
     setIsLoadingResponse(true);
     console.log(selectedText);
-    const response = await fetchGeminiResponse("Explain what the following code does in simple terms.\nMake sure to:\n- Break it down step by step\n- Use bullet points where needed\n- Format code snippets using backticks\n- Keep it concise but thorough\n Do not explain extremely obvious things and try to keep it short and sweet \n I need to display this on my web app so for bold headings use two bullet points (**)\n\nHere is the code(if this is not code then return a blank statement):\n"+selectedText);
+    const response = await fetchGeminiResponse("Explain what the following code does in simple terms.\nMake sure to:\n- Break it down step by step\n- Use bullet points where needed\n- Format code snippets using backticks\n- Keep it concise but thorough\n Do not explain extremely obvious things and try to keep it short and sweet \n I need to display this on my web app so for bold headings use two bullet points (**)\n\nHere is the code(if this is not code then tell me tthat you will not provide an answer):\n"+selectedText);
     console.log("Gemini API Response:", response);
     setIsLoadingResponse(false);
     
@@ -118,11 +125,12 @@ function App() {
       ...conversation,
       {
         role: "user",
-        parts: [{ text: followUp }],
+        parts: [{ text: followUp + "\n (Strict api rules to adhere to: Only answer if this question is related to the code initially provided in the first message, if no code or a random non code related statement was provided than deny to answer...)" }],
       }
     ];
 
     setConversation(updatedConversation);
+    scrollToBottom();
 
     const response = await fetchFollowUpResponse(updatedConversation);
     setIsLoadingResponse(false);
@@ -139,8 +147,19 @@ function App() {
           parts: [{ text: response.candidates[0].content.parts[0].text }] 
         }
       ]);
+      scrollToBottom();
     }
   }
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [conversation]);
+
+  useEffect(() => {
+    if (isfollowUp) {
+      scrollToBottom();
+    }
+  }, [isfollowUp]);
 
   return (
     <div className='flex w-screen h-screen bg-black items-center justify-center relative'>
@@ -298,11 +317,12 @@ function App() {
                   {
                     isfollowUp && (
                   <motion.div
+                    ref={scrollRef}
                     className='w-full h-full max-h-[230px] relative rounded-lg overflow-auto'
-                    initial={{ opacity: 0, y: -100 }}
-                    animate={{ opacity: 1 , y: 0}}
+                    initial={{ opacity: 0, y: -100, height: 0 }}
+                    animate={{ opacity: 1 , y: 0, height: "auto"}}
                     transition={{ duration: 0.5 }}
-                    exit={{ opacity: 0, y: -100 }}
+                    exit={{ opacity: 0, y: -100, height: 0 }}
                   >
                     {
                       conversation.map((message, index) => {
@@ -310,6 +330,7 @@ function App() {
                         if (index === 0 || index === 1) return null;
                         
                         if (message.role === "user") {
+                          const displayText = message.parts[0].text.replace(/\n \(Strict api rules to adhere to: Only answer if this question is related to the code initially provided in the first message, if no code or a random non code related statement was provided than deny to answer...\)$/, '');
                           return (
                             <motion.div 
                               key={index} 
@@ -319,7 +340,7 @@ function App() {
                               transition={{ duration: 0.3 }}
                             >
                               <div className='p-2.5 bg-yellow-500/20 border border-yellow-500/40 rounded-lg text-yellow-100 text-xs'>
-                                {message.parts[0].text}
+                                {displayText}
                               </div>
                             </motion.div>
                           );
