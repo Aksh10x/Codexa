@@ -4,8 +4,13 @@ import fetchGeminiResponse from './howItWorks';
 import { FaChevronDown, FaChevronUp, FaCircleArrowUp, FaKeyboard, FaArrowRight } from 'react-icons/fa6';
 import fetchFollowUpResponse from './followUpQuestions';
 import { GiNorthStarShuriken } from 'react-icons/gi';
+import LoginPage from './login.component';
+import { useAuth } from './AuthContext';
+import { FaSignOutAlt } from 'react-icons/fa';
 
 function App() {
+  const { currentUser, logOut } = useAuth();
+  const [profilePage, setProfilePage] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
   const [selectedText, setSelectedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -166,9 +171,25 @@ function App() {
     }
   }, [isfollowUp]);
 
+  const handleSignOut = async () => {
+    try {
+      await logOut();
+      setIsSelected(false);
+      setSelectedText("");
+      setGeminiResponse("");
+      setConversation([]);
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
+  if(!currentUser){
+    return <LoginPage />
+  }
+
   return (
     <div className='flex w-screen h-screen bg-black items-center justify-center relative'>
-      <div className='max-w-[350px] max-h-[450px] h-full w-full bg-white/5 flex flex-col p-4'>
+      <div className='max-w-[350px] max-h-[450px] h-full w-full bg-white/5 flex flex-col p-4 relative'>
         <div className='flex flex-col items-center w-full justify-center p-2'>
           <motion.h1
           initial={{opacity:0, y:-100}}
@@ -186,6 +207,27 @@ function App() {
             transition={{ duration: 0.9, ease: 'easeInOut', delay: 0.5 }}
             ></motion.div>
           </motion.h1>
+
+          {currentUser && (
+            <button onClick={() => {setProfilePage(true)}} className="flex items-center gap-2 absolute top-4 right-4 cursor-pointer">
+              {currentUser.photoURL ? (
+                <img 
+                  src={currentUser.photoURL} 
+                  alt="Profile"
+                  height={20}
+                  width={20}
+                  className="h-10 w-10 rounded-full border border-yellow-400"
+                />
+              ) : (
+                <div 
+                  className="h-10 w-10 rounded-full border border-yellow-400 bg-yellow-500/30 flex items-center justify-center text-white text-xs font-bold"
+                >
+                  {currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : 
+                  currentUser.email ? currentUser.email.charAt(0).toUpperCase() : '?'}
+                </div>
+              )}
+            </button>
+          )}
           
         </div>
         
