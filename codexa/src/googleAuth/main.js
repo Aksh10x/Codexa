@@ -1,6 +1,10 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { 
+  browserLocalPersistence, 
+  getAuth, 
+  setPersistence,
+  fetchSignInMethodsForEmail 
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -13,10 +17,14 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
+
+// Set persistence to LOCAL
+setPersistence(auth, browserLocalPersistence)
+  .then(() => console.log("Firebase persistence set to LOCAL"))
+  .catch(error => console.error("Error setting persistence:", error));
+
 const db = getFirestore(app);
 
-export { auth, googleProvider, db };
+export { auth, db, fetchSignInMethodsForEmail };

@@ -1,8 +1,8 @@
 {
-    "manifest_version": 3,
+    "manifest_version": 2,
     "name": "Codexa",
     "version": "1.0.0",
-    "action": {
+    "browser_action": {
         "default_popup": "index.html"
     },
     "permissions": [
@@ -11,8 +11,6 @@
         "activeTab",
         "tabs"
     ],
-    "host_permissions": ["<all_urls>"],
+    "content_security_policy": "script-src 'self'; object-src 'self'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com;",
     "description": "Explain code snippets using AI on any webpage."
-
-
 }

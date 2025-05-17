@@ -7,10 +7,12 @@ import { GiNorthStarShuriken } from 'react-icons/gi';
 import LoginPage from './login.component';
 import { useAuth } from './AuthContext';
 import { FaSignOutAlt } from 'react-icons/fa';
+import { MdLogout } from 'react-icons/md';
+import { PiCursorTextDuotone } from 'react-icons/pi';
+import { LuTextCursorInput } from 'react-icons/lu';
 
 function App() {
   const { currentUser, logOut } = useAuth();
-  const [profilePage, setProfilePage] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
   const [selectedText, setSelectedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -183,7 +185,13 @@ function App() {
     }
   };
 
+
   if(!currentUser){
+    return <LoginPage />
+  }
+
+  // Redirect to verification notice if email is not verified
+  if(currentUser && !currentUser.emailVerified) {
     return <LoginPage />
   }
 
@@ -209,24 +217,33 @@ function App() {
           </motion.h1>
 
           {currentUser && (
-            <button onClick={() => {setProfilePage(true)}} className="flex items-center gap-2 absolute top-4 right-4 cursor-pointer">
+            <div className="flex items-center gap-2 absolute top-4 right-4">
               {currentUser.photoURL ? (
                 <img 
                   src={currentUser.photoURL} 
                   alt="Profile"
-                  height={20}
-                  width={20}
-                  className="h-10 w-10 rounded-full border border-yellow-400"
+                  height={2}
+                  width={2}
+                  className="h-7 w-7 rounded-full border border-yellow-400"
                 />
               ) : (
                 <div 
-                  className="h-10 w-10 rounded-full border border-yellow-400 bg-yellow-500/30 flex items-center justify-center text-white text-xs font-bold"
+                  className="h-7 w-7 rounded-full border border-yellow-400 bg-yellow-500/30 flex items-center justify-center text-white text-xs font-bold"
                 >
                   {currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : 
                   currentUser.email ? currentUser.email.charAt(0).toUpperCase() : '?'}
                 </div>
               )}
-            </button>
+              <motion.button
+                onClick={handleSignOut}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="text-yellow-300 text-xl p-1 rounded hover:bg-black/30"
+                title="Sign Out"
+              >
+                <MdLogout />
+              </motion.button>
+            </div>
           )}
           
         </div>
@@ -694,7 +711,7 @@ function App() {
                     <div className="flex flex-col gap-3">
                       <motion.button
                         onClick={handleButtonClick}
-                        className={`px-4 py-1.5 justify-center text-sm rounded-md font-semibold bg-gradient-to-r 
+                        className={`px-4 py-1.5 justify-center flex text-sm rounded-md font-semibold bg-gradient-to-r 
                           from-yellow-400 to-red-400 text-white
                           border-2 border-red-500 flex items-center gap-1`}
                         initial={{filter: "blur(3px)", opacity:0.5}}
@@ -723,7 +740,7 @@ function App() {
                           }
                         }}
                       >
-                        Use Selection
+                       <LuTextCursorInput className='text-3xl text-white'/> Use Selection
                       </motion.button>
                       
                       <motion.button
@@ -757,7 +774,7 @@ function App() {
                           }
                         }}
                       >
-                        <FaKeyboard className="mr-1" /> Manual Input (Preferred for LeetCode like interfaces)
+                        <FaKeyboard className="mr-1 text-3xl" /> Manual Input (Preferred for LeetCode like interfaces)
                       </motion.button>
                     </div>
                   </div>
