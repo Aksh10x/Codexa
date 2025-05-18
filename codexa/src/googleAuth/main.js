@@ -5,7 +5,7 @@ import {
   setPersistence,
   fetchSignInMethodsForEmail 
 } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, collection, addDoc, updateDoc, doc, getDocs, query, where, orderBy, serverTimestamp, getDoc, arrayUnion } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -26,5 +26,22 @@ setPersistence(auth, browserLocalPersistence)
   .catch(error => console.error("Error setting persistence:", error));
 
 const db = getFirestore(app);
+const conversationsRef = collection(db, "conversations");
 
-export { auth, db, fetchSignInMethodsForEmail };
+export { 
+  auth, 
+  db, 
+  fetchSignInMethodsForEmail, 
+  conversationsRef,
+  collection,
+  addDoc,
+  updateDoc,
+  doc,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  serverTimestamp,
+  getDoc,
+  arrayUnion,
+};
