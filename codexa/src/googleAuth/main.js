@@ -5,7 +5,7 @@ import {
   setPersistence,
   fetchSignInMethodsForEmail 
 } from "firebase/auth";
-import { getFirestore, collection, addDoc, updateDoc, doc, getDocs, query, where, orderBy, serverTimestamp, getDoc, arrayUnion } from "firebase/firestore";
+import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, getDocs, query, where, orderBy, serverTimestamp, getDoc, arrayUnion } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -44,4 +44,5 @@ export {
   serverTimestamp,
   getDoc,
   arrayUnion,
+  deleteDoc
 };
