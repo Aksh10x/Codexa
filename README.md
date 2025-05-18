@@ -26,7 +26,7 @@ Codexa is a lightweight yet powerful Chrome extension designed to help developer
 ## 🔧 Installation (Development)
 
 1. Clone this repo: ```bash
-git clone https://github.com/yourusername/codexa.git
+git clone https://github.com/Aksh10x/codexa.git
 
 2.Navigate into the project folder: cd codexa/codexa   
 
