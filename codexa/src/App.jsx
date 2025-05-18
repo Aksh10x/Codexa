@@ -590,7 +590,7 @@ function App() {
                     {isfollowUp && (
                       <motion.div
                         ref={scrollRef}
-                        className='w-full h-full max-h-[230px] relative rounded-lg overflow-auto'
+                        className='w-full h-full max-h-[260px] mt-12 relative rounded-lg overflow-auto'
                         initial={{ opacity: 0, y: -100, height: 0 }}
                         animate={{ opacity: 1, y: 0, height: "auto" }}
                         transition={{ duration: 0.5 }}
