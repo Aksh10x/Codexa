@@ -36,13 +36,15 @@ git clone https://github.com/yourusername/codexa.git
 
 5. Load the extension in Chrome: Enable developer mode in your extensions page; Click on Load Unpacked and select the dist foler in the project.
 
-## 🛡️ Permissions: Codexa requires minimal permissions to work on code-hosting websites. We do not store or track your browsing data.
+## 🛡️ Permissions
+Codexa requires minimal permissions to work on code-hosting websites. We do not store or track your browsing data.
 
 ## 🧠 AI & Auth
 - Uses Gemini API for generating code explanations (customizable)
 - Firebase Authentication (email/password with verification)
 - Firebase Firestore for storing conversations
 
-## 📬 Feedback & Contributions: If you find a bug or want to contribute a feature, feel free to open an issue or submit a pull request.
+## 📬 Feedback & Contributions
+If you find a bug or want to contribute a feature, feel free to open an issue or submit a pull request.
    
   
